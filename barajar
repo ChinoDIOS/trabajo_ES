@@ -1,0 +1,137 @@
+import tkinter as tk
+import random
+
+class Card:
+    def __init__(self, palo, valor):
+        self.palo = palo # Corazones, Diamantes, Treboles, Picas.
+        self.valor = valor # 2, 3, 4, 5, 6, 7, 8, 9, 10, Jota, Reina, Rey, As.
+
+    def __str__(self):
+        return f"{self.valor} de {self.palo}" 
+
+class Node:
+    def __init__(self, card):
+        self.card = card
+        self.next = None
+
+class Deck:
+    def __init__(self):
+        palos = ['Corazones', 'Diamantes', 'Tréboles', 'Picas']
+        valores = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jota', 'Reina', 'Rey', 'As']
+        self.head = None
+        self.size = 0
+        # Crear la baraja como lista enlazada
+        for palo in palos:
+            for valor in valores:
+                self.add_card(Card(palo, valor))
+
+    def add_card(self, card):
+        # Añade una carta al final (parte inferior)
+        new_node = Node(card)
+        if not self.head:
+            self.head = new_node
+        else:
+            current = self.head
+            while current.next:
+                current = current.next
+            current.next = new_node
+        self.size += 1
+
+    def draw_card(self):
+        # Saca la carta de arriba (head)
+        if not self.head:
+            return None
+        card = self.head.card
+        self.head = self.head.next
+        self.size -= 1
+        return card
+
+    def shuffle(self):
+        # Baraja las cartas (reordena los nodos aleatoriamente)
+        cards = []
+        current = self.head
+        while current:
+            cards.append(current.card)
+            current = current.next
+        random.shuffle(cards)
+        self.head = None
+        self.size = 0
+        for card in cards:
+            self.add_card(card)
+
+    def __str__(self):
+        # Muestra todas las cartas
+        cards = []
+        current = self.head
+        while current:
+            cards.append(str(current.card))
+            current = current.next
+        return ', '.join(cards)
+
+class Casino:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Casino")
+        self.master.geometry("400x300")
+
+        self.label = tk.Label(master, text="¡Bienvenido a la baraja!")
+        self.label.pack(pady=20)
+
+        self.play_button = tk.Button(master, text="Jugar", command=self.pagina_cartas)
+        self.play_button.pack(pady=10)
+
+    def pagina_cartas(self):
+        self.cartas = tk.Toplevel(self.master)
+        self.cartas.title("Cartas")
+        self.cartas.geometry("800x600")
+
+        # Crear la baraja
+        self.deck = Deck()
+
+        # Mostrar cartas
+        self.cartas_label = tk.Label(self.cartas, text=str(self.deck), wraplength=700, justify="left")
+        self.cartas_label.pack(pady=10)
+
+        # Botón para barajar
+        shuffle_btn = tk.Button(self.cartas, text="Barajar", command=self.barajar)
+        shuffle_btn.pack(pady=5)
+
+        # Botón para sacar carta
+        draw_btn = tk.Button(self.cartas, text="Sacar carta de arriba", command=self.sacar_carta)
+        draw_btn.pack(pady=5)
+
+        # Botón para colocar carta abajo
+        add_btn = tk.Button(self.cartas, text="Colocar carta abajo", command=self.colocar_abajo)
+        add_btn.pack(pady=5)
+
+        # Mostrar carta sacada
+        self.carta_sacada_label = tk.Label(self.cartas, text="")
+        self.carta_sacada_label.pack(pady=10)
+
+    def actualizar_baraja(self):
+        self.cartas_label.config(text=str(self.deck))
+
+    def barajar(self):
+        self.deck.shuffle()
+        self.actualizar_baraja()
+        self.carta_sacada_label.config(text="")
+
+    def sacar_carta(self):
+        carta = self.deck.draw_card()
+        if carta:
+            self.carta_sacada_label.config(text=f"Carta sacada: {carta}")
+        else:
+            self.carta_sacada_label.config(text="No hay cartas.")
+        self.actualizar_baraja()
+
+    def colocar_abajo(self):
+        # Ejemplo: coloca un As de Corazones abajo (puedes cambiar la lógica)
+        carta = Card('Corazones', 'As')
+        self.deck.add_card(carta)
+        self.actualizar_baraja()
+        self.carta_sacada_label.config(text=f"Carta colocada abajo: {carta}")
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = Casino(root)
+    root.mainloop()
